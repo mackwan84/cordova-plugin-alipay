@@ -1,4 +1,4 @@
-package com.icon.cordova;
+package cn.com.icon.cordova;
 
 import java.security.KeyFactory;
 import java.security.PrivateKey;

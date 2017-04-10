@@ -56,9 +56,7 @@ public class AlipayPlugin extends CordovaPlugin {
         return false;
     }
 
-    @SuppressLint("HandlerLeak")
     private Handler mHandler = new Handler() {
-        @SuppressWarnings("unused")
         public void handleMessage(Message message) {
             switch (message.what) {
                 case SDK_PAY_FLAG: {
@@ -73,17 +71,16 @@ public class AlipayPlugin extends CordovaPlugin {
                     String resultStatus = payResult.getResultStatus();
                     // 判断resultStatus 为“9000”则代表支付成功，具体状态码代表含义可参考接口文档
                     if (TextUtils.equals(resultStatus, "9000")) {
-                        Toast.makeText(PayDemoActivity.this, "支付成功", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(cordova.getActivity(), "支付成功", Toast.LENGTH_SHORT).show();
                     } else {
                         // 判断resultStatus 为非"9000"则代表可能支付失败
                         // "8000"代表支付结果因为支付渠道原因或者系统原因还在等待支付结果确认，最终交易是否成功以服务端异步通知为准（小概率状态）
                         if (TextUtils.equals(resultStatus, "8000")) {
-                            Toast.makeText(PayDemoActivity.this, "支付结果确认中", Toast.LENGTH_SHORT).show();
+                            Toast.makeText(cordova.getActivity(), "支付结果确认中", Toast.LENGTH_SHORT).show();
 
                         } else {
                             // 其他值就可以判断为支付失败，包括用户主动取消支付，或者系统返回的错误
-                            Toast.makeText(PayDemoActivity.this, "支付失败", Toast.LENGTH_SHORT).show();
-
+                            Toast.makeText(cordova.getActivity(), "支付失败", Toast.LENGTH_SHORT).show();
                         }
                     }
                     break;
@@ -98,38 +95,65 @@ public class AlipayPlugin extends CordovaPlugin {
      * create the order info. 创建订单信息
      */
     private String getOrderInfo(JSONObject obj) {
-
         // 签约合作者身份ID
         String orderInfo = "partner=" + "\"" + partner + "\"";
 
         // 签约卖家支付宝账号
         orderInfo += "&seller_id=" + "\"" + seller + "\"";
 
-        // 商户网站唯一订单号
-        orderInfo += "&out_trade_no=" + "\"" + obj.getString("out_trade_no") + "\"";
+		try {
+			// 商户网站唯一订单号
+			orderInfo += "&out_trade_no=" + "\"" + obj.getString("out_trade_no") + "\"";
+		} catch (JSONException e) {
+			e.printStackTrace();
+		}
 
-        // 商品名称
-        orderInfo += "&subject=" + "\"" + obj.getString("subject") + "\"";
+		try {
+			// 商品名称
+			orderInfo += "&subject=" + "\"" + obj.getString("subject") + "\"";
+		} catch (JSONException e) {
+			e.printStackTrace();
+		}
 
-        // 商品详情
-        orderInfo += "&body=" + "\"" + obj.getString("body") + "\"";
+		try {
+			// 商品详情
+			orderInfo += "&body=" + "\"" + obj.getString("body") + "\"";
+		} catch (JSONException e) {
+			e.printStackTrace();
+		}
 
-        // 商品金额
-        orderInfo += "&total_fee=" + "\"" + obj.getDouble("total_fee") + "\"";
+		try {
+			// 商品金额
+			orderInfo += "&total_fee=" + "\"" + obj.getDouble("total_fee") + "\"";
+		} catch (JSONException e) {
+			e.printStackTrace();
+		}
 
-        // 商品货币
-        if(obj.getString("currency")!=null && !TextUtils.isEmpty(obj.getString("currency"))) {
-            orderInfo += "&currency" + "\"" + obj.getString("currency") + "\"";
-            orderInfo += "&forex_biz=\"FP\"";
-        }
+		try {
+			// 商品货币
+			if(obj.getString("currency")!=null && !TextUtils.isEmpty(obj.getString("currency"))) {
+				orderInfo += "&currency" + "\"" + obj.getString("currency") + "\"";
+				orderInfo += "&forex_biz=\"FP\"";
+			}
+		} catch (JSONException e) {
+			e.printStackTrace();
+		}
 
-        // 服务器异步通知页面路径
-        orderInfo += "&notify_url=" + "\"" + obj.getString("notify_url") + "\"";
+		try {
+			// 服务器异步通知页面路径
+			orderInfo += "&notify_url=" + "\"" + obj.getString("notify_url") + "\"";
+		} catch (JSONException e) {
+			e.printStackTrace();
+		}
 
-        // 支付宝处理完请求后，当前页面跳转到商户指定页面的路径，可空
-        if(obj.getString("return_url")!=null && !TextUtils.isEmpty(obj.getString("return_url"))) {
-            orderInfo += "&return_url=" + "\"" + obj.getString("return_url") + "\"";
-        }
+		try {
+			// 支付宝处理完请求后，当前页面跳转到商户指定页面的路径，可空
+			if(obj.getString("return_url")!=null && !TextUtils.isEmpty(obj.getString("return_url"))) {
+				orderInfo += "&return_url=" + "\"" + obj.getString("return_url") + "\"";
+			}
+		} catch (JSONException e) {
+			e.printStackTrace();
+		}
 
         // 服务接口名称， 固定值
         orderInfo += "&service=\"mobile.securitypay.pay\"";
@@ -159,12 +183,28 @@ public class AlipayPlugin extends CordovaPlugin {
         return "sign_type=\"RSA\"";
     }
 
-    private void pay(JSONObject obj, CallbackContext callbackContext) {
+    private void pay(final JSONObject obj, final CallbackContext callbackContext) {
         Runnable payRunnable = new Runnable() {
             @Override
             public void run() {
                 // 构造PayTask 对象
-                PayTask alipay = new PayTask(PayDemoActivity.this);
+                PayTask alipay = new PayTask(cordova.getActivity());
+				
+				// 订单
+				String orderInfo = getOrderInfo(obj);
+
+				// 对订单做RSA 签名
+				String sign = sign(orderInfo);
+				try {
+					// 仅需对sign 做URL编码
+					sign = URLEncoder.encode(sign, "UTF-8");
+				} catch (UnsupportedEncodingException e) {
+					e.printStackTrace();
+				}
+
+				// 完整的符合支付宝参数规范的订单信息
+				String payInfo = orderInfo + "&sign=\"" + sign + "\"&" + getSignType();
+				
                 // 调用支付接口，获取支付结果
                 String result = alipay.pay(payInfo, true);
 
