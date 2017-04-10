@@ -1,4 +1,4 @@
-package com.icon.cordova.;
+package com.icon.cordova;
 
 public final class Base64 {
 
