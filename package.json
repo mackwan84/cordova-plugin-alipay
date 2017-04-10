@@ -1,0 +1,27 @@
+{
+  "name": "cordova-plugin-icon-alipay",
+  "version": "0.0.1",
+  "description": "Corodva Plugin for Alipay",
+  "cordova": {
+    "id": "cordova-plugin-icon-alipay",
+    "platforms": [
+      "cordova-android", 
+	  "cordova-ios"
+    ]
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/mackwan84/cordova-plugin-alipay.git"
+  },
+  "keywords": [
+    "cordova",
+    "cordova-android",
+	"cordova-ios"
+  ],
+  "author": "Mac Kwan",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/mackwan84/cordova-plugin-alipay/issues"
+  },
+  "homepage": "https://github.com/mackwan84/cordova-plugin-alipay#readme"
+}

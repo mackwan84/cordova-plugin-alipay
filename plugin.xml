@@ -1,0 +1,42 @@
+<?xml version='1.0' encoding='utf-8'?>
+<plugin id="cordova-plugin-icon-alipay" version="0.0.1" xmlns="http://apache.org/cordova/ns/plugins/1.0" xmlns:android="http://schemas.android.com/apk/res/android">
+  <name>cordova-plugin-icon-alipay</name>
+  <preference name="PARTNER"/>
+  <preference name="SELLER"/>
+  <preference name="RSA_PRIVATE_KEY"/>
+  <js-module name="Alipay" src="www/Alipay.js">
+    <clobbers target="Alipay" />
+  </js-module>
+  <platform name="android">
+	<config-file target="res/xml/config.xml" parent="/*">
+      <preference name="partner" value="$PARTNER" />
+      <preference name="seller" value="$SELLER" />
+      <preference name="rsa_private_key" value="$RSA_PRIVATE_KEY" />
+      <feature name="Alipay">
+        <param name="android-package" value="cn.com.icon.cordova.AlipayPlugin"/>
+        <param name="onload" value="true" />
+      </feature>
+    </config-file>
+    <config-file target="AndroidManifest.xml" parent="/manifest/application">
+      <!-- alipay sdk begin -->
+      <activity android:name="com.alipay.sdk.app.H5PayActivity"
+        android:configChanges="orientation|keyboardHidden|navigation"
+        android:exported="false" android:screenOrientation="behind"
+        android:windowSoftInputMode="adjustResize|stateHidden">
+      </activity>
+      <!-- alipay sdk end -->
+    </config-file>
+    <config-file target="AndroidManifest.xml" parent="/manifest">
+      <uses-permission android:name="android.permission.INTERNET" />
+      <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+      <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
+      <uses-permission android:name="android.permission.READ_PHONE_STATE" />
+      <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+    </config-file>
+    <source-file src="src/android/libs/alipaySdk-20160825.jar" target-dir="libs"/>
+    <source-file src="src/android/AlipayPlugin.java" target-dir="src/cn/com/icon/cordova" />
+    <source-file src="src/android/Base64.java" target-dir="src/cn/com/icon/cordova" />
+    <source-file src="src/android/PayResult.java" target-dir="src/cn/com/icon/cordova" />
+    <source-file src="src/android/SignUtils.java" target-dir="src/cn/com/icon/cordova" />
+  </platform>
+</plugin>
